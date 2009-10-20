@@ -1,14 +1,22 @@
 module Spinderella
-  class Receiver
-    
-    AUTH_TOKEN = "AWESOMESAUCE"
+  class Receiver < Connection
     
     on_action :broadcast do |data|
-      broadcast(data["message"], data["type"], data) if authenticated? && data["message"].present?
+      if authenticated?
+        broadcast(data["message"], data["type"], data) if data["message"].present?
+      else
+        perform_action :unauthorized
+      end
     end
     
     on_action :authenticate do |data|
-      authenticate! if data["token"] == AUTH_TOKEN
+      logger.debug "Attempting to authenticate receive w/ token: #{data["token"].inspect} (expects #{options.auth_token.inspect})"
+      if data["token"] == options.auth_token
+        logger.debug "Authenticating"
+        authenticate!
+      else
+        perform_action :authentication_failed
+      end
     end
     
     def authenticated?
@@ -17,6 +25,7 @@ module Spinderella
     
     def authenticate!
       @authenticated = true
+      perform_action :authenticated
     end
     
     def broadcast(message, type = nil, data = {})
@@ -35,18 +44,23 @@ module Spinderella
     end
     
     def self.start
+      opts = Spinderella::Settings.broadcaster_server ||= Spinderella::Nash.new
+      opts.host ||= "127.0.0.1"
+      opts.port ||= 42341
+      logger.info "Starting receiver on #{opts.host}:#{opts.port}"
+      EM.start_server(opts.host.to_s, opts.port.to_i, self, opts)
     end
     
     protected
     
     def publish_to_all(message)
-      User.push_to_all(message)
+      User.publish_to_all(message)
     end
     
     def publish_to_users(users, message)
       return if users.blank?
       users = Array(users).map { |u| User[u.to_s] }.compact.uniq
-      Spinderella::Publisher.publish(users, message, :type => "user")
+      Publisher.publish(users, message, :type => "user")
     end
     
     def publish_to_channel(channel, message)

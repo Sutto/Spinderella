@@ -15,7 +15,7 @@ module Spinderella
     
     def self.publish_to_all(message, meta = {})
       logger.debug "Publishing #{message.inspect} to all users"
-      Spinderella::Publisher.publish(@@identifier_mapping.values, message, meta)
+      Publisher.publish(@@users.values, message, meta)
     end
     
     def self.each_user(&blk)
@@ -30,7 +30,7 @@ module Spinderella
       @channels   = {}
       @ping_count = 0
       build_signature
-      @@users[signature] = self
+      @@users[@signature] = self
     end
     
     def ping
@@ -79,8 +79,9 @@ module Spinderella
       connection.close_connection_after_writing
     end
     
-    def self.ping_all(max_ping_count = 5)
+    def self.ping_all
       logger.debug "Pinging all users"
+      max_ping_count = (Spinderella::Settings.subscriber_server.max_ping_count ||= 5).to_i
       self.each_user.each do |user|
         if user.ping_count > max_ping_count
           user.disconnect "Unresponsive to pings"

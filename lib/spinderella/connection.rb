@@ -13,7 +13,10 @@ module Spinderella
       define_method(method_name, &blk)
     end
 
+    attr_reader :options
+
     def initialize(*args)
+      @options = args.last.is_a?(Spinderella::Nash) ? args.pop : Spinderella::Nash.new
       @buffer = BufferedTokenizer.new(SEPERATOR)
     end
     
@@ -27,7 +30,11 @@ module Spinderella
     
     def handle_action(name, data)
       method_name = self.actions[name]
-      return unless method_name.present? && respond_to?(method_name)
+      # If there is an unknown action, return an error
+      unless method_name.present? && respond_to?(method_name)
+        perform_action :unknown_action, :action_name => name
+        return
+      end
       begin
         send(method_name, data) 
       rescue Exception => e
@@ -35,6 +42,7 @@ module Spinderella
         logger.error "Message: #{e.message}"
         logger.error "Backtrace:"
         e.backtrace.each { |line| logger.error "--> #{line}" }
+        perform_action :exception, :name => e.class.name, :message => e.message
       end
     end
     

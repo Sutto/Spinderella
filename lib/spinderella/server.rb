@@ -1,6 +1,5 @@
 module Spinderella
   class Server < Connection
-    PING_EVERY = 30
     
     on_action :subscribe do |data|
       return unless user?
@@ -60,16 +59,19 @@ module Spinderella
         EM.run do
           # Start Event Loop
           self.start
-          EM.add_periodic_timer(PING_EVERY) { User.ping_all }
+          Receiver.start
+          ping_every = (Spinderella::Settings.subscriber_server.ping_every ||= 30).to_i
+          EM.add_periodic_timer(ping_every) { User.ping_all }
         end
       end
       
       def start(opts = {})
-        real_opts = opts.symbolize_keys
-        real_opts[:host] ||= "0.0.0.0"
-        real_opts[:port] ||= 42340
-        host = real_opts[:host].to_s
-        port = real_opts[:port].to_i
+        real_opts = Spinderella::Settings.subscriber_server ||= Spinderella::Nash.new
+        real_opts.host ||= "0.0.0.0"
+        real_opts.port ||= 42340
+        real_opts.merge!(opts)
+        host = real_opts.host.to_s
+        port = real_opts.port.to_i
         EventMachine.start_server(host, port, self, opts)
         logger.info "Serving Spinderella clients on #{host}:#{port}"
       end

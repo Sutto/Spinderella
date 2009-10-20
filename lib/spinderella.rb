@@ -13,10 +13,11 @@ module Spinderella
   VERSION = "0.0.1"
   
   manifest do |m, l|
+    Settings.lookup_key_path = []
     Settings.root = __FILE__.to_pathname.dirname.dirname
     l.register_controller :server, 'Spinderella::Server'
   end
   
-  has_library :connection, :server, :publisher, :user, :channel
+  has_library :connection, :server, :publisher, :user, :channel, :receiver
   
 end

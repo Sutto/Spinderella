@@ -1,5 +1,7 @@
 module Spinderella
   class Channel
+    is :loggable
+    
     @@channel_mapping = {}
 
     def self.register_channel(channel)
@@ -21,7 +23,7 @@ module Spinderella
     def self.publish(channels, message)
       logger.debug "Publishing message #{message.inspect} to channels #{channels.inspect}"
       users = Array(channels).map { |c| exists?(c.to_s) ? self[c.to_s].clients.values : [] }.flatten.uniq
-      Spinderella::Publisher.publish(users, message, :type => "channels", :channels => channels)
+      Publisher.publish(users, message, :type => "channels", :channels => channels)
     end
 
     attr_reader :name
@@ -38,7 +40,7 @@ module Spinderella
     
     def publish(message)
       logger.debug "Publishing #{message.inspect} directly to #{self.name}"
-      Spinderella::Publisher.publish(@clients.values, message, :type => "channel", :channel => self.name)
+      Publisher.publish(@clients.values, message, :type => "channel", :channel => self.name)
     end
     
     def subscribe(user)
