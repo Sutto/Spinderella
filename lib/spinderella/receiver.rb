@@ -65,9 +65,7 @@ module Spinderella
     
     def publish_to_channel(channel, message)
       return if channel.blank?
-      if Channel.exists?(channel)
-        Channel[channel].publish(message)
-      end
+      Channel[channel].publish(message) if Channel.exists?(channel)
     end
     
     def publish_to_channels(channels, message)
