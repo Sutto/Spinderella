@@ -51,6 +51,7 @@ module SNP
       processed = Yajl::Parser.parse(message)
       return unless processed.is_a?(Hash)
       action, data = processed["action"], processed["data"]
+      data ||= {}
       return unless action.is_a?(String) || data.is_a?(Hash)
       handle_action(action, data)
     rescue Yajl::ParseError => e

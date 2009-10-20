@@ -1,6 +1,6 @@
 module SNP
   class Server < Connection
-    PING_EVERY = 10
+    PING_EVERY = 30
     
     on_action :subscribe do |data|
       return unless user?
@@ -21,6 +21,11 @@ module SNP
     on_action :pong do |data|
       return unless user?
       @user.pong
+    end
+    
+    on_action :channels do |data|
+      return unless user?
+      perform_action "channels", :channels => @user.channels.keys
     end
     
     attr_reader :user

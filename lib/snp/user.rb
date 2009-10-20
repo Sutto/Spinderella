@@ -14,6 +14,7 @@ module SNP
     end
     
     def self.publish_to_all(message, meta = {})
+      logger.debug "Publishing #{message.inspect} to all users"
       SNP::Publisher.publish(@@identifier_mapping.values, message, meta)
     end
     
@@ -21,7 +22,7 @@ module SNP
       @@users.each_value(&blk)
     end
     
-    attr_reader :signature, :connection, :identifier, :ping_count
+    attr_reader :signature, :connection, :identifier, :ping_count, :channels
     
     def initialize(connection)
       @connection = connection
@@ -87,6 +88,10 @@ module SNP
           user.ping
         end
       end
+    end
+    
+    def ==(other)
+      other.is_a?(self.class) && self.signature == other.signature
     end
     
     protected

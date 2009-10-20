@@ -17,6 +17,12 @@ module SNP
     def self.exists?(name)
       @@channel_mapping.has_key?(name)
     end
+    
+    def self.publish(channels, message)
+      logger.debug "Publishing message #{message.inspect} to channels #{channels.inspect}"
+      users = Array(channels).map { |c| exists?(c.to_s) ? self[c.to_s].clients.values : [] }.flatten.uniq
+      SNP::Publisher.publish(users, message, :type => "channels", :channels => channels)
+    end
 
     attr_reader :name
 
@@ -31,7 +37,8 @@ module SNP
     end
     
     def publish(message)
-      SNP::Publisher.notify(@clients.values, message, :type => "channel", :channel => self.name)
+      logger.debug "Publishing #{message.inspect} directly to #{self.name}"
+      SNP::Publisher.publish(@clients.values, message, :type => "channel", :channel => self.name)
     end
     
     def subscribe(user)
@@ -39,7 +46,7 @@ module SNP
     end
     
     def unsubscribe(user)
-      @clients.deleete(user.signature)
+      @clients.delete(user.signature)
       self.class.remove_channel(self) if empty?
     end
     
