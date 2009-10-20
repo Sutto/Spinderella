@@ -7,14 +7,14 @@ require 'digest/sha2'
 
 # Salt N Pepper!
 # Push it - Push it real good!
-module SNP
+module Spinderella
   include Perennial
   
   VERSION = "0.0.1"
   
   manifest do |m, l|
     Settings.root = __FILE__.to_pathname.dirname.dirname
-    l.register_controller :server, 'SNP::Server'
+    l.register_controller :server, 'Spinderella::Server'
   end
   
   has_library :connection, :server, :publisher, :user, :channel

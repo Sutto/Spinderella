@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require File.join(File.dirname(__FILE__), "..", "lib", "spinderella")
+
+Spinderella::Application.processing(ARGV) do |a|
+  a.banner = "Spinderella - Salt'N'Pepper v#{Spinderella::VERSION}"
+  a.controller! :server, "Starts a Server, accepting client connections and the like"
+end
+
+

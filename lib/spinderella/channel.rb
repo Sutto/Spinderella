@@ -1,4 +1,4 @@
-module SNP
+module Spinderella
   class Channel
     @@channel_mapping = {}
 
@@ -21,7 +21,7 @@ module SNP
     def self.publish(channels, message)
       logger.debug "Publishing message #{message.inspect} to channels #{channels.inspect}"
       users = Array(channels).map { |c| exists?(c.to_s) ? self[c.to_s].clients.values : [] }.flatten.uniq
-      SNP::Publisher.publish(users, message, :type => "channels", :channels => channels)
+      Spinderella::Publisher.publish(users, message, :type => "channels", :channels => channels)
     end
 
     attr_reader :name
@@ -38,7 +38,7 @@ module SNP
     
     def publish(message)
       logger.debug "Publishing #{message.inspect} directly to #{self.name}"
-      SNP::Publisher.publish(@clients.values, message, :type => "channel", :channel => self.name)
+      Spinderella::Publisher.publish(@clients.values, message, :type => "channel", :channel => self.name)
     end
     
     def subscribe(user)

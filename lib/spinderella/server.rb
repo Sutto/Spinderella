@@ -1,4 +1,4 @@
-module SNP
+module Spinderella
   class Server < Connection
     PING_EVERY = 30
     
@@ -56,7 +56,7 @@ module SNP
     class << self
       
       def run
-        logger.info "Starting SNP Server"
+        logger.info "Starting Spinderella Server"
         EM.run do
           # Start Event Loop
           self.start
@@ -71,11 +71,11 @@ module SNP
         host = real_opts[:host].to_s
         port = real_opts[:port].to_i
         EventMachine.start_server(host, port, self, opts)
-        logger.info "Serving SNP clients on #{host}:#{port}"
+        logger.info "Serving Spinderella clients on #{host}:#{port}"
       end
       
       def stop
-        logger.info "Stopping SNP Server"
+        logger.info "Stopping Spinderella Server"
         EM.stop_event_loop if EM.reactor_running?
       end
       

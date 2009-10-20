@@ -1,4 +1,4 @@
-module SNP
+module Spinderella
   class Publisher
     is :loggable
     

@@ -1,4 +1,4 @@
-module SNP
+module Spinderella
   class Receiver
     
     AUTH_TOKEN = "AWESOMESAUCE"
@@ -46,7 +46,7 @@ module SNP
     def publish_to_users(users, message)
       return if users.blank?
       users = Array(users).map { |u| User[u.to_s] }.compact.uniq
-      SNP::Publisher.publish(users, message, :type => "user")
+      Spinderella::Publisher.publish(users, message, :type => "user")
     end
     
     def publish_to_channel(channel, message)

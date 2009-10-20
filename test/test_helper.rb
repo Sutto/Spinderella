@@ -8,7 +8,7 @@ require 'redgreen' if RUBY_VERSION < "1.9"
 
 require 'pathname'
 root_directory = Pathname.new(__FILE__).dirname.join("..").expand_path
-require root_directory.join("lib", "snp")
+require root_directory.join("lib", "spinderella")
 
 class Test::Unit::TestCase
 

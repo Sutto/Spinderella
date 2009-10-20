@@ -1,4 +1,4 @@
-module SNP
+module Spinderella
   class User
     is :loggable
     
@@ -15,7 +15,7 @@ module SNP
     
     def self.publish_to_all(message, meta = {})
       logger.debug "Publishing #{message.inspect} to all users"
-      SNP::Publisher.publish(@@identifier_mapping.values, message, meta)
+      Spinderella::Publisher.publish(@@identifier_mapping.values, message, meta)
     end
     
     def self.each_user(&blk)

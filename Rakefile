@@ -16,17 +16,17 @@ end
 
 task :gemspec do
   require 'rubygems'
-  require File.join(File.dirname(__FILE__), "lib", "snp")
+  require File.join(File.dirname(__FILE__), "lib", "spinderella")
   spec = Gem::Specification.new do |s|
-    s.name     = 'snp'
+    s.name     = 'spinderella'
     s.email    = ''
     s.homepage = ''
     s.authors  = ["YOUR NAME"]
-    s.version  = SNP::VERSION
+    s.version  = Spinderella::VERSION
     s.summary  = ""
     s.files    = FileList["{bin,vendor,lib,test}/**/*"].to_a
     s.platform = Gem::Platform::RUBY
     s.add_dependency "Sutto-perennial", ">= 1020"
   end
-  File.open("snp.gemspec", "w+") { |f| f.puts spec.to_ruby }
+  File.open("spinderella.gemspec", "w+") { |f| f.puts spec.to_ruby }
 end
