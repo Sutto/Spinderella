@@ -53,9 +53,15 @@ module Spinderella
       }))
     end
     
+    def send_data(d)
+      logger.debug ">> #{d.strip}"
+      super(d)
+    end
+    
     protected
     
     def receive_message(message)
+      logger.debug "<< #{message.strip}"
       processed = Yajl::Parser.parse(message)
       return unless processed.is_a?(Hash)
       action, data = processed["action"], processed["data"]
