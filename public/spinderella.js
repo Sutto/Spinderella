@@ -1,3 +1,10 @@
+Array.prototype.remove = function(from, to) {
+  var rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+
+
 // Spinderella.js - A Web Client for Spinderella, built on jssocket
 
 var Spinderella = function(host, port, channels, identifier, onMessage) {
@@ -23,13 +30,14 @@ Spinderella.prototype = {
     if(this.buffer.indexOf("\r\n") >= 0) {
       var split_buffer = this.buffer.split("\r\n");
       this.buffer = split_buffer.pop() || "";
-      for(var idx in split_buffer) {
+      for(var idx = 0; idx < split_buffer.length; idx++) {
         this.receiveMessage(split_buffer[idx]);
       }
     }
   },
   
   receiveMessage: function(raw_message) {
+    console.log("Raw Message: " + raw_message);
     var parsed = JSON.parse(raw_message);
     if(parsed && parsed.action) {
       this.handleAction(parsed.action, (parsed.data || {}));
@@ -57,12 +65,21 @@ Spinderella.prototype = {
   },
   
   subscribe: function(channels) {
+    for(var idx = 0; idx < channels.length; idx++) {
+      var c = channels[idx];
+      if(this.channels.indexOf(c) < 0) this.channels.push(c);
+    }
     this.performAction("subscribe", {
       "channels": channels
     });
   },
   
   unsubscribe: function(channels) {
+    for(var idx = 0; idx < channels.length; idx++) {
+      var c = channels[idx];
+      var idx2 = this.channels.indexOf(c);
+      if(idx2 >= 0) this.channels.remove(idx2);
+    }
     this.performAction("unsubscribe", {
       "channels": channels
     });
