@@ -102,7 +102,9 @@ Spinderella.Orbited = function(host, port, channels, identifier, onMessage) {
 
 Spinderella.Orbited.prototype = {
   
-  reconnect_on: [Orbited.Errors.RemoteConnectionFailed, Orbited.Errors.UserConnectionReset, Orbited.Statuses.ServerClosedConnection],
+  reconnectOn: function() {
+    return [Orbited.Errors.RemoteConnectionFailed, Orbited.Errors.UserConnectionReset, Orbited.Statuses.ServerClosedConnection];
+  },
   
   onMessage: function(f) { this.client.onMessage = f; },
   
@@ -118,44 +120,10 @@ Spinderella.Orbited.prototype = {
   
   onDisconnect: function(c) {
     this.client.processDisconnection();
-    if(this.reconnect_on.indexOf(c) >= 0) {
+    if(this.reconnectOn().indexOf(c) >= 0) {
       var self = this;
       setTimeout(function() { self.connect(); }, 5000);
     }
-  },
-  
-  send: function(data) {
-    this.socket.send(data);
-  }
-  
-};
-
-// jssocket
-
-if(typeof(JSON) == "undefined" && typeof(JSONstring) != "undefined") {
-  JSON = {
-    stringify: function(v) { return JSONstring.make(v); },
-    parse:     function(o) { return JSONstring.toObject(v); },
-  }
-}
-
-Spinderella.JSSocket = function(host, port, channels, identifier, onMessage) {
-  this.client = new Spinderella(host, port, channels, identifier, onMessage);
-  this.client.socket = this;
-}
-
-Spinderella.JSSocket.prototype = {
-  
-  onMessage: function(f) { this.client.onMessage = f; },
-  
-  connect: function() {
-    var client = this.client;
-    this.socket = jsSocket({
-      onData:  function(d) { client.receiveData(d); },
-      onOpen:  function()  { client.processConnection(); },
-      onClose: function()  { client.processDisconnection(); },
-    })
-    this.socket.connect(client.host, client.port);
   },
   
   send: function(data) {
