@@ -7,35 +7,16 @@ var Spinderella = function(host, port, channels, identifier, onMessage) {
   this.identifier = identifier;
   this.buffer = "";
   this.onMessage = onMessage || function(contents, type, data) {};
-  this.connect(); 
 }
 
 Spinderella.prototype = {
-  
-  reconnect_on: [Orbited.Errors.RemoteConnectionFailed, Orbited.Errors.UserConnectionReset, Orbited.Statuses.ServerClosedConnection],
-  
-  connect: function() {
-    this.socket = new TCPSocket();
-    var spin = this;
-    this.socket.onread  = function(d) { spin.receiveData(d)  };
-    this.socket.onopen  = function()  { spin.processConnection() };
-    this.socket.onclose = function(c) { spin.processDisconnection(c) };
-    this.socket.open(this.host, this.port);
-  },
   
   processConnection: function() {
     if(this.channels && this.channels.length > 0) this.subscribe(this.channels);
     if(this.identifier) this.identify(this.identifier);
   },
   
-  processDisconnection: function(c) {
-    if(this.reconnect_on.indexOf(c) >= 0) {
-      var spin = this;
-      setTimeout(function() {
-        spin.connect();
-      }, 5000);
-    }
-  },
+  processDisconnection: function() {},
   
   receiveData: function(data) {
     this.buffer += data;
@@ -91,6 +72,77 @@ Spinderella.prototype = {
     this.performAction("identify", {
       "identifier": identifier
     })
+  }
+  
+};
+
+// Orbited Implementation
+
+Spinderella.Orbited = function(host, port, channels, identifier, onMessage) {
+  this.client = new Spinderella(host, port, channels, identifier, onMessage);
+  this.client.socket = this;
+}
+
+Spinderella.Orbited.prototype = {
+  
+  reconnect_on: [Orbited.Errors.RemoteConnectionFailed, Orbited.Errors.UserConnectionReset, Orbited.Statuses.ServerClosedConnection],
+  
+  onMessage: function(f) { this.client.onMessage = f; },
+  
+  connect: function() {
+    this.socket = new TCPSocket();
+    var client = this.client;
+    var self   = this;
+    this.socket.onread  = function(d) { client.receiveData(d)  };
+    this.socket.onopen  = function()  { client.processConnection() };
+    this.socket.onclose = function(c) { self.onDisconnect(c) };
+    this.socket.open(client.host, client.port);
+  },
+  
+  onDisconnect: function(c) {
+    this.client.processDisconnection();
+    if(this.reconnect_on.indexOf(c) >= 0) {
+      var self = this;
+      setTimeout(function() { self.connect(); }, 5000);
+    }
+  },
+  
+  send: function(data) {
+    this.socket.send(data);
+  }
+  
+};
+
+// jssocket
+
+if(typeof(JSON) == "undefined" && typeof(JSONstring) != "undefined") {
+  JSON = {
+    stringify: function(v) { return JSONstring.make(v); },
+    parse:     function(o) { return JSONstring.toObject(v); },
+  }
+}
+
+Spinderella.JSSocket = function(host, port, channels, identifier, onMessage) {
+  this.client = new Spinderella(host, port, channels, identifier, onMessage);
+  this.client.socket = this;
+}
+
+Spinderella.JSSocket.prototype = {
+  
+  onMessage: function(f) { this.client.onMessage = f; },
+  
+  connect: function() {
+    var client = this.client;
+    this.socket = jsSocket({
+      onData:  function(d) { client.receiveData(d); },
+      onOpen:  function()  { client.processConnection(); },
+      onClose: function()  { client.processDisconnection(); },
+    })
+    this.socket.connect(client.host, client.port);
+  },
+  
+  send: function(data) {
+    this.socket.send(data);
   }
   
 };

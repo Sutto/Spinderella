@@ -16,10 +16,11 @@
         // Orbited.settings.hostname = "localhost";
         TCPSocket = Orbited.TCPSocket;
         // Setup TCP Socket
-        spinderella = new Spinderella("localhost");
-        spinderella.onMessage = function(c) {
+        spinderella = new Spinderella.Orbited("localhost");
+        spinderella.onMessage(function(c) {
           eval(c);
-        }
+        });
+        spinderella.connect();
       }
     </script>
   </body>
