@@ -30,3 +30,18 @@ task :gemspec do
   end
   File.open("spinderella.gemspec", "w+") { |f| f.puts spec.to_ruby }
 end
+
+desc "Minifies the Javascript involves"
+task :minify do
+  require 'packr'
+  public_dir = File.join(File.dirname(__FILE__), "public")
+  files = ["json2.js", "spinderella.js"]
+  input = []
+  files.each do |file|
+    input << File.read(File.join(public_dir, file))
+  end
+  File.open(File.join(public_dir, "spinderella-min.js"), "w+") do |f|
+    f.puts "// Released under the MIT License"
+    f.puts Packr.pack(input.join("\n"), :shrink_vars => true)
+  end
+end
