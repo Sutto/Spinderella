@@ -98,7 +98,7 @@ module Spinderella
     protected
     
     def build_signature
-      @signature = Digest::SHA256.digest("#{Time.now.to_f}|#{@connection.get_peername}")
+      @signature = Digest::SHA256.hexdigest("#{Time.now.to_f}|#{@connection.get_peername}")
     end
     
   end
