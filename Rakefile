@@ -33,7 +33,7 @@ end
 
 desc "Minifies the Javascript involves"
 task :minify do
-  require 'packr'
+  require 'jsmin'
   public_dir = File.join(File.dirname(__FILE__), "public")
   files = ["json2.js", "spinderella.js"]
   input = []
@@ -42,6 +42,6 @@ task :minify do
   end
   File.open(File.join(public_dir, "spinderella-min.js"), "w+") do |f|
     f.puts "// Released under the MIT License"
-    f.puts Packr.pack(input.join("\n"), :shrink_vars => true)
+    f.puts JSMin.minify(input.join("\n"))
   end
 end

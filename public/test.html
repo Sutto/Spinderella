@@ -4,20 +4,20 @@
     <script> document.domain = document.domain; </script>
     <title>Test</title>
     <script src="http://localhost:8000/static/Orbited.js" type="text/javascript"></script>
-    <script src="./spinderella.js" type="text/javascript"></script>
+    <script src="./spinderella-min.js" type="text/javascript"></script>
   </head>
   <body>
     <div id='index'>
     </div>
     <script type="text/javascript">
       window.onload = function () {
-        console.log("loaded...");
         // Orbited.settings.port     = 8000;
         // Orbited.settings.hostname = "localhost";
         TCPSocket = Orbited.TCPSocket;
         // Setup TCP Socket
         spinderella = new Spinderella.Orbited("localhost");
         spinderella.onMessage(function(c) {
+          console.log("Received Message");
           eval(c);
         });
         spinderella.connect();

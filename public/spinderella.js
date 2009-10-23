@@ -37,7 +37,6 @@ Spinderella.prototype = {
   },
   
   receiveMessage: function(raw_message) {
-    console.log("Raw Message: " + raw_message);
     var parsed = JSON.parse(raw_message);
     if(parsed && parsed.action) {
       this.handleAction(parsed.action, (parsed.data || {}));
@@ -108,13 +107,14 @@ Spinderella.Orbited.prototype = {
   
   onMessage: function(f) { this.client.onMessage = f; },
   
-  connect: function() {
+  connect: function(f) {
     this.socket = new TCPSocket();
     var client = this.client;
     var self   = this;
-    this.socket.onread  = function(d) { client.receiveData(d)  };
-    this.socket.onopen  = function()  { client.processConnection() };
-    this.socket.onclose = function(c) { self.onDisconnect(c) };
+    if(typeof(f) != "function") f = function() {};
+    this.socket.onread  = function(d) { client.receiveData(d);  };
+    this.socket.onopen  = function()  { client.processConnection(); f(); };
+    this.socket.onclose = function(c) { self.onDisconnect(c); };
     this.socket.open(client.host, client.port);
   },
   
