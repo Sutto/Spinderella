@@ -5,7 +5,7 @@ require 'test/unit'
 require 'shoulda'
 # RedGreen doesn't seem to be needed under 1.9
 require 'redgreen' if RUBY_VERSION < "1.9"
-require 'rr'
+require 'mocha'
 
 require 'pathname'
 root_directory = Pathname.new(__FILE__).dirname.join("..").expand_path
@@ -34,5 +34,3 @@ class Test::Unit::TestCase
   end
   
 end
-
-Test::Unit::TestCase.extend RR::Adapters::TestUnit

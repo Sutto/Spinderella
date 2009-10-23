@@ -53,19 +53,9 @@ class ChannelTest < Test::Unit::TestCase
     end
     
     should 'let you publish a message to members of the channel' do
-      users   = nil
-      message = nil
-      options = {}
-      mock(Spinderella::Publisher).publish do |u, m, o|
-        users = u
-        message = m
-        options = o
-      end
+      @channel.unsubscribe(@user_b)
+      Spinderella::Publisher.expects(:publish).with([@user_a], "Some-Message", :channel => "awesome-channel", :type => "channel")
       @channel.publish("Some-Message")
-      assert_equal "Some-Message", message
-      assert(users & [@user_a, @user_b] == users) 
-      assert_equal "channel",         options[:type]
-      assert_equal "awesome-channel", options[:channel]
     end
     
   end
