@@ -19,14 +19,14 @@ task :gemspec do
   require File.join(File.dirname(__FILE__), "lib", "spinderella")
   spec = Gem::Specification.new do |s|
     s.name     = 'spinderella'
-    s.email    = ''
-    s.homepage = ''
-    s.authors  = ["YOUR NAME"]
+    s.email    = 'sutto@sutto.net'
+    s.homepage = 'http://sutto.net/'
+    s.authors  = ["Darcy Laycock"]
     s.version  = Spinderella::VERSION
-    s.summary  = ""
+    s.summary  = "A pub-sub style server setup for ruby. Like juggernaut but minus the web client."
     s.files    = FileList["{bin,vendor,lib,test}/**/*"].to_a
     s.platform = Gem::Platform::RUBY
-    s.add_dependency "Sutto-perennial", ">= 1020"
+    s.add_dependency "perennial"
   end
   File.open("spinderella.gemspec", "w+") { |f| f.puts spec.to_ruby }
 end
