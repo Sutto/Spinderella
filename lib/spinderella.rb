@@ -18,6 +18,6 @@ module Spinderella
     l.register_controller :server, 'Spinderella::Server'
   end
   
-  has_library :connection, :server, :publisher, :user, :channel, :receiver
+  has_library :connection, :server, :publisher, :user, :channel, :receiver, :http
   
 end
