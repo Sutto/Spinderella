@@ -1,6 +1,9 @@
 module Spinderella
   class Server < Connection
     
+    FLASH_POLICY_REQUEST  = "<policy-file-request/>".freeze
+    FLASH_POLICY_RESPONSE = "<cross-domain-policy><allow-access-from domain='*' to-ports='SPINDERELLA-PORT' /></cross-domain-policy>".freeze
+    
     on_action :subscribe do |data|
       return unless user?
       Array(data["channels"]).each { |channel| @user.subscribe_to(channel.to_s) }
@@ -31,7 +34,9 @@ module Spinderella
     
     def initialize(*args)
       super
+      @options = args.last.is_a?(Spinderella::Nash) ? args.pop : Spinderella::Nash.new
       @user = nil
+      @awaiting_policy_file_request = true
     end
     
     def post_init
@@ -46,6 +51,19 @@ module Spinderella
         @user.cleanup
         @user = nil
       end
+    end
+    
+    def receive_data(data)
+      if !@awaiting_policy_file_request
+        if data.include?(FLASH_POLICY_REQUEST)
+          logger.debug "Got flash policy request, sending policy response."
+          send_data FLASH_POLICY_RESPONSE.gsub('SPINDERELLA-PORT', @options.port)
+          close_connection_after_writing
+          return
+        end
+        @awaiting_policy_file_request = false
+      end
+      super
     end
     
     def user?
