@@ -4,7 +4,6 @@ Array.prototype.remove = function(from, to) {
   return this.push.apply(this, rest);
 };
 
-
 // Spinderella.js - A Web Client for Spinderella, built on WebSocket, jsSocket, and Orbited
 // Making it super easy for realtime pubsub clients in the browser.
 
@@ -16,6 +15,19 @@ var Spinderella = function(host, port, channels, identifier, onMessage) {
   this.buffer = "";
   this.onMessage = onMessage || function() {};
 }
+
+Spinderella.Util = {
+  
+  loadJS: function(url, func) {
+    var script    = document.createElement("script");
+    script.type   = "text/javascript";
+    script.src    = url;
+    script.onload = func;
+    var head      = document.getElementsByTagName("head")[0];
+    head.appendChild(script);
+  }
+  
+};
 
 Spinderella.prototype = {
   
@@ -137,7 +149,6 @@ Spinderella.Orbited.prototype = {
   
 };
 
-
 // jsSocket Implementation
 
 Spinderella.jsSocket = function(host, port, channels, identifier, onMessage) {
@@ -145,24 +156,44 @@ Spinderella.jsSocket = function(host, port, channels, identifier, onMessage) {
   this.client.socket = this;
 };
 
+Spinderella.jsSocket.flashURL = "";
+Spinderella.jsSocket.javascriptURL = "";
+
 Spinderella.jsSocket.isUsable = function() {
+  
 };
 
 Spinderella.jsSocket.prototype = {
   
   connect: function(f) {
+    var self = this;
+    var client = this.client;
+    var callback = function() {
+      jsSocket.swf = Spinderella.jsSocket.flashURL;
+      self.socket = new jsSocket({keepalive: false, autoreconnect: true});
+      if(typeof(f) != "function") f = function() {};
+      self.socket.onData   = function(d) { client.receiveData(d);  };
+      self.socket.onOpen   = function()  { client.processConnection(); f(); };
+      self.socket.onClose  = function()  { client.processDisconnection(); };
+      self.socket.onLoaded = function()  { self.socket.connect(client.host, client.port); };
+    };
+    // Load the JS if not already loaded, otherwise call it immediatly.
+    if(typeof(jsSocket) != "undefined") {
+      Spinderella.Util.loadJS(Spinderella.jsSocket.javascriptURL, callback);
+    } else {
+      callback();
+    }
   },
   
-  send: function(data) { 
+  send: function(data) {
+    this.socket.send(data);
   },
   
-  onMessage: function(f) {
-  }
+  onMessage: function(f) { this.client.onMessage = f; }
   
 };
 
 // WebSocket Implementation
-
 
 Spinderella.WebSocket = function(host, port, channels, identifier, onMessage) {
   this.client = new Spinderella(host, port, channels, identifier, onMessage);
@@ -181,16 +212,16 @@ Spinderella.WebSocket.prototype = {
   onMessage: function(f) { this.client.onMessage = f; },
   
   connect: function(f) {
-    this.socket = new WebSocket();
+    this.socket = new WebSocket(this.resourceURL);
     var client = this.client;
     var self   = this;
     if(typeof(f) != "function") f = function() {};
-    this.socket.onread  = function(d) { client.receiveData(d);  };
+    this.socket.onread  = function(e) { client.receiveData(e.data);  };
     this.socket.onopen  = function()  { client.processConnection(); f(); };
-    this.socket.onclose = function(c) { self.onDisconnect(c); };
+    this.socket.onclose = function()  { self.onDisconnect(); };
   },
   
-  onDisconnect: function(c) {
+  onDisconnect: function() {
     this.client.processDisconnection();
     // Check for a disconnection by mistake
     if(false) {
@@ -210,7 +241,7 @@ Spinderella.WebSocket.prototype = {
 
 Spinderella.Implementations = [Spinderella.WebSocket, Spinderella.jsSocket, Spinderella.Orbited];
 
-Spinderella.getPreferredImplementation() {
+Spinderella.getPreferredImplementation = function() {
   var implementation;
   for(var i in Spinderella.Implementations) {
     implementation = Spinderella.Implementations[i];
@@ -219,7 +250,7 @@ Spinderella.getPreferredImplementation() {
   return;
 };
 
-Spinderella.connect(host, port, channels, identifier, onMessage) {
+Spinderella.connect = function(host, port, channels, identifier, onMessage) {
   var impl = Spinderella.getPreferredImplementation();
   if(impl) return new impl(host, port, channels, instance, onMessage);
 }

@@ -33,7 +33,7 @@ end
 
 desc "Minifies the Javascript involves"
 task :minify do
-  require "jsmin"
+  require "closure-compiler"
   public_dir = File.join(File.dirname(__FILE__), "public")
   files = ["json2.js", "spinderella.js"]
   input = []
@@ -42,7 +42,8 @@ task :minify do
   end
   original_js = input.join("\n")
   
-  compressed = JSMin.minify(original_js)
+  compiler = Closure::Compiler.new
+  compressed = compiler.compile(original_js)
   
   puts "Original Size: #{original_js.size}"
   puts "New Size:      #{compressed.size}"
