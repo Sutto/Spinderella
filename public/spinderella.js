@@ -5,7 +5,8 @@ Array.prototype.remove = function(from, to) {
 };
 
 
-// Spinderella.js - A Web Client for Spinderella, built on jssocket
+// Spinderella.js - A Web Client for Spinderella, built on WebSocket, jsSocket, and Orbited
+// Making it super easy for realtime pubsub clients in the browser.
 
 var Spinderella = function(host, port, channels, identifier, onMessage) {
   this.host = host;
@@ -13,7 +14,7 @@ var Spinderella = function(host, port, channels, identifier, onMessage) {
   this.channels = channels || [];
   this.identifier = identifier;
   this.buffer = "";
-  this.onMessage = onMessage || function(contents, type, data) {};
+  this.onMessage = onMessage || function() {};
 }
 
 Spinderella.prototype = {
@@ -99,6 +100,10 @@ Spinderella.Orbited = function(host, port, channels, identifier, onMessage) {
   this.client.socket = this;
 }
 
+Spinderella.Orbited.isUseable = function() {
+  return true;
+};
+
 Spinderella.Orbited.prototype = {
   
   reconnectOn: function() {
@@ -131,3 +136,90 @@ Spinderella.Orbited.prototype = {
   }
   
 };
+
+
+// jsSocket Implementation
+
+Spinderella.jsSocket = function(host, port, channels, identifier, onMessage) {
+  this.client = new Spinderella(host, port, channels, identifier, onMessage);
+  this.client.socket = this;
+};
+
+Spinderella.jsSocket.isUsable = function() {
+};
+
+Spinderella.jsSocket.prototype = {
+  
+  connect: function(f) {
+  },
+  
+  send: function(data) { 
+  },
+  
+  onMessage: function(f) {
+  }
+  
+};
+
+// WebSocket Implementation
+
+
+Spinderella.WebSocket = function(host, port, channels, identifier, onMessage) {
+  this.client = new Spinderella(host, port, channels, identifier, onMessage);
+  this.resourceURL = "ws://" + host;
+  if(port != 80) this.resourceURL += (":" + port);
+  this.resourceURL += ("/" + "spinderella");
+  this.client.socket = this;
+}
+
+Spinderella.WebSocket.isUseable = function() {
+  return (typeof(WebSocket) != "undefined");
+};
+
+Spinderella.WebSocket.prototype = {
+  
+  onMessage: function(f) { this.client.onMessage = f; },
+  
+  connect: function(f) {
+    this.socket = new WebSocket();
+    var client = this.client;
+    var self   = this;
+    if(typeof(f) != "function") f = function() {};
+    this.socket.onread  = function(d) { client.receiveData(d);  };
+    this.socket.onopen  = function()  { client.processConnection(); f(); };
+    this.socket.onclose = function(c) { self.onDisconnect(c); };
+  },
+  
+  onDisconnect: function(c) {
+    this.client.processDisconnection();
+    // Check for a disconnection by mistake
+    if(false) {
+      var self = this;
+      setTimeout(function() { self.connect(); }, 5000);
+    }
+  },
+  
+  send: function(data) {
+    this.socket.send(data);
+  }
+  
+};
+
+// Abstract away the process of finding the best implementation for users so they
+// can just automatically use the best fit for this scenario.
+
+Spinderella.Implementations = [Spinderella.WebSocket, Spinderella.jsSocket, Spinderella.Orbited];
+
+Spinderella.getPreferredImplementation() {
+  var implementation;
+  for(var i in Spinderella.Implementations) {
+    implementation = Spinderella.Implementations[i];
+    if(implementation.isUseable()) return implementation;
+  }
+  return;
+};
+
+Spinderella.connect(host, port, channels, identifier, onMessage) {
+  var impl = Spinderella.getPreferredImplementation();
+  if(impl) return new impl(host, port, channels, instance, onMessage);
+}
