@@ -159,8 +159,16 @@ Spinderella.jsSocket = function(host, port, channels, identifier, onMessage) {
 Spinderella.jsSocket.flashURL = "";
 Spinderella.jsSocket.javascriptURL = "";
 
-Spinderella.jsSocket.isUsable = function() {
-  
+Spinderella.jsSocket.isUseable = function() {
+  // VERY rudimentary check for Flash.
+  var n = navigator;
+  if(n.mimeTypes) {
+    return n.mimeTypes["application/x-shockwave-flash"] !== undefined;
+  } else if(n.plugins) {
+    return n.plugins["Shockwave Flash"] !== undefined;
+  } else {
+    return false;
+  }
 };
 
 Spinderella.jsSocket.prototype = {
@@ -261,7 +269,7 @@ Spinderella.connect = function(host, ports, channels, identifier, onMessage) {
       port = ports.websocket;
       break;
     default:
-      port = ports.default;
+      port = ports.base;
       break;
     }
   }
