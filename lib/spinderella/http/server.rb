@@ -27,9 +27,17 @@ module Spinderella
         @user.present?
       end
       
+      def send_message(data)
+        logger.debug ">> #{data.strip}"
+        super
+      end
+      
       # Include the message handling part of connections
       require 'spinderella/connection/message_handling'
       include Spinderella::Connection::MessageHandling
+      
+      require 'spinderella/server/default_actions'
+      include Spinderella::Server::DefaultActions
       
       def self.start(opts = {})
         real_opts = Spinderella::Settings.subscriber_server ||= Spinderella::Nash.new

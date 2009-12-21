@@ -1,23 +1,18 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
-    <script> document.domain = document.domain; </script>
-    <title>Test</title>
-    <script src="http://localhost:8000/static/Orbited.js" type="text/javascript"></script>
-    <script src="./spinderella-min.js" type="text/javascript"></script>
+    <title>Spinderella Test</title>
+    <script src="./spinderella.js" type="text/javascript"></script>
   </head>
   <body>
     <div id='index'>
     </div>
     <script type="text/javascript">
-      window.onload = function () {
-        // Orbited.settings.port     = 8000;
-        // Orbited.settings.hostname = "localhost";
-        TCPSocket = Orbited.TCPSocket;
+      window.onload = function () {    
         // Setup TCP Socket
-        spinderella = new Spinderella.Orbited("localhost");
+        spinderella = Spinderella.create("localhost", {websocket: 42342, base: 42340});
         spinderella.onMessage(function(c) {
-          console.log("Received Message");
+          console.log("Received Message w/ data: " + c);
           eval(c);
         });
         spinderella.connect();
@@ -25,7 +20,7 @@
       
       function checkSubscription() {
         var channels = document.getElementById("channels").value.split(",");
-        console.log("Subscribing to " + channels.length + " channels, =" + channels.toString());
+        console.log("Subscribing to " + channels.length + " channels: " + channels.toString());
         spinderella.client.subscribe(channels);
       }
       
