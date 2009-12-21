@@ -11,8 +11,7 @@ module Spinderella
         "action" => "receive_message",
         "data"   => meta
       })
-      raw << Connection::SEPERATOR
-      Array(users).each { |user| user.connection.send_data(raw) }
+      Array(users).each { |user| user.connection.send_message(raw) }
     end
     
   end

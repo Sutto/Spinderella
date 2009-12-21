@@ -4,31 +4,8 @@ module Spinderella
     FLASH_POLICY_REQUEST  = "<policy-file-request/>".freeze
     FLASH_POLICY_RESPONSE = "<cross-domain-policy><allow-access-from domain='*' to-ports='SPINDERELLA-PORT' /></cross-domain-policy>".freeze
     
-    on_action :subscribe do |data|
-      return unless user?
-      Array(data["channels"]).each { |channel| @user.subscribe_to(channel.to_s) }
-    end
-    
-    on_action :unsubscribe do |data|
-      return unless user?
-      Array(data["channels"]).each { |channel| @user.unsubscribe_from(channel.to_s) }
-    end
-    
-    on_action :identify do |data|
-      return unless user?
-      identifier = data["identifier"]
-      @user.identifier = identifier.to_s if identifier.present?
-    end
-    
-    on_action :pong do |data|
-      return unless user?
-      @user.pong
-    end
-    
-    on_action :channels do |data|
-      return unless user?
-      perform_action "channels", :channels => @user.channels.keys
-    end
+    require 'spinderella/server/default_actions'
+    include DefaultActions
     
     attr_reader :user
     
@@ -77,6 +54,7 @@ module Spinderella
         EM.run do
           # Start Event Loop
           self.start
+          Http::Server.start
           Receiver.start
           ping_every = (Spinderella::Settings.subscriber_server.ping_every ||= 30).to_i
           EM.add_periodic_timer(ping_every) { User.ping_all }

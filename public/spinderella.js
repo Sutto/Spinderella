@@ -250,7 +250,20 @@ Spinderella.getPreferredImplementation = function() {
   return;
 };
 
-Spinderella.connect = function(host, port, channels, identifier, onMessage) {
+Spinderella.connect = function(host, ports, channels, identifier, onMessage) {
   var impl = Spinderella.getPreferredImplementation();
+  var port;
+  if(typeof(ports) == "number") {
+    port = ports;
+  } else {
+    switch(impl) {
+    case Spinderella.WebSocket:
+      port = ports.websocket;
+      break;
+    default:
+      port = ports.default;
+      break;
+    }
+  }
   if(impl) return new impl(host, port, channels, instance, onMessage);
 }
