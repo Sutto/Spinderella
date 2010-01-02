@@ -43,8 +43,8 @@ module Spinderella
     
         def perform_action(name, data = {})
           send_message(Yajl::Encoder.encode({
-            "action" => name.to_s,
-            "data"   => data.stringify_keys
+            "action"  => name.to_s,
+            "payload" => data.stringify_keys
           }))
         end
       
@@ -54,7 +54,7 @@ module Spinderella
           logger.debug "<< #{message.strip}"
           processed = Yajl::Parser.parse(message)
           return unless processed.is_a?(Hash)
-          action, data = processed["action"], processed["data"]
+          action, data = processed["action"], processed["payload"]
           data ||= {}
           return unless action.is_a?(String) || data.is_a?(Hash)
           handle_action(action, data)

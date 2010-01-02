@@ -1,4 +1,5 @@
 module Spinderella
+  # TODO: Rewrite using the standard implementations provided by perennial
   class Connection < EM::Connection
     is :loggable
     

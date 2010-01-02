@@ -1,6 +1,7 @@
 require 'eventmachine'
 require 'json' unless {}.respond_to?(:to_json)
 
+# TODO: Rewrite using the standard implementations provided by perennial
 module Spinderella
   class EMBroadcasterClient < EM::Connection
     
@@ -76,8 +77,8 @@ module Spinderella
     
     def perform_action(name, data = {})
       raw_json = JSON.dump({
-        "action" => name.to_s,
-        "data"   => data
+        "action"  => name.to_s,
+        "payload" => data
       })
       send_data "#{raw_json}#{SEPERATOR}"
     end
@@ -86,7 +87,7 @@ module Spinderella
       parsed = JSON.parse(res)
       return unless parsed.is_a?(Hash)
       action = parsed["action"]
-      data   = parsed["data"] || {}
+      data   = parsed["payload"] || {}
       handle_action(action, data)
     rescue JSON::ParserError
     end

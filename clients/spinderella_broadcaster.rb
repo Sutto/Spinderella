@@ -1,6 +1,7 @@
 require 'socket'
 require 'json' unless {}.respond_to?(:to_json)
 
+# TODO: Rewrite using the standard implementations provided by perennial
 module Spinderella
   class BroadcasterClient
     SEPERATOR = "\r\n".freeze
