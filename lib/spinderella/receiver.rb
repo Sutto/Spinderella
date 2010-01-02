@@ -1,6 +1,14 @@
 module Spinderella
   class Receiver < Connection
     
+    attr_reader :options
+    
+    def initialize(*args)
+      super
+      @options = args.last.is_a?(Spinderella::Nash) ? args.pop : Spinderella::Nash.new
+      @user = nil
+    end
+    
     on_action :broadcast do |data|
       if authenticated?
         broadcast(data["message"], data["type"], data) if data["message"].present?
@@ -43,8 +51,13 @@ module Spinderella
       end
     end
     
-    def receive_message(data)
-      puts "Got data: #{data.inspect}"
+    def recieve_data(d)
+      puts "<< #{d.strip}"
+      super
+    end
+    
+    def send_data(d)
+      puts ">> #{d.strip}"
       super
     end
     

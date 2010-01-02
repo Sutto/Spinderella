@@ -7,7 +7,7 @@ module Spinderella
     require 'spinderella/server/default_actions'
     include DefaultActions
     
-    attr_reader :user
+    attr_reader :user, :options
     
     def initialize(*args)
       super
