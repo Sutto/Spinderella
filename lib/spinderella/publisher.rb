@@ -7,11 +7,7 @@ module Spinderella
       meta = meta.stringify_keys
       meta["type"] ||= "broadcast"
       meta["message"] = message
-      data = {
-        "action"  => "receive_message",
-        "payload" => meta
-      }
-      Array(users).each { |user| user.connection.message(data) }
+      Array(users).each { |user| user.connection.message(:receive_message, meta) }
     end
     
   end
