@@ -1,11 +1,12 @@
-require 'em-websocket-server'
+require 'web_socket'
 module Spinderella
   module Http
-    class Server < WebSocketServer
+    class Server < WebSocket::Server
       
       is :loggable
       
       def on_connect
+        @connected = true
         logger.debug "WebSocket connection initiated."
         @user = Spinderella::User.new(self)
         logger.debug "Created user with signature hash #{@user.signature.hash.to_s(16)}"
@@ -14,13 +15,14 @@ module Spinderella
       def on_disconnect
         logger.debug "Lost client connection on websocket"
         if user?
+          logger.debug "Cleaning up the user instance"
           @user.cleanup
           @user = nil
         end
       end
       
       def on_receive(message)
-        receive_message(message)
+        receive_message(message.strip)
       end
       
       def user?
@@ -33,8 +35,7 @@ module Spinderella
       end
       
       # Include the message handling part of connections
-      require 'spinderella/connection/message_handling'
-      include Spinderella::Connection::MessageHandling
+      include Perennial::Protocols::JSONTransport::MessageHandling
       
       require 'spinderella/server/default_actions'
       include Spinderella::Server::DefaultActions
@@ -48,6 +49,12 @@ module Spinderella
         port = real_opts.websocket_port.to_i
         EventMachine.start_server(host, port, self, opts)
         logger.info "Serving Spinderella WebSocket clients on #{host}:#{port}"
+      end
+      
+      protected
+      
+      # Noop in the WebSocket server.
+      def enable_ssl
       end
       
     end

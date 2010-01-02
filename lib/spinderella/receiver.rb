@@ -5,7 +5,7 @@ module Spinderella
       if authenticated?
         broadcast(data["message"], data["type"], data) if data["message"].present?
       else
-        perform_action :unauthorized
+        message :unauthorized
       end
     end
     
@@ -15,7 +15,7 @@ module Spinderella
         logger.debug "Authenticating"
         authenticate!
       else
-        perform_action :authentication_failed
+        message :authentication_failed
       end
     end
     
@@ -25,7 +25,7 @@ module Spinderella
     
     def authenticate!
       @authenticated = true
-      perform_action :authenticated
+      message :authenticated
     end
     
     def broadcast(message, type = nil, data = {})
@@ -41,6 +41,11 @@ module Spinderella
       when "channel"
         publish_to_channel(data["channel"], message)
       end
+    end
+    
+    def receive_message(data)
+      puts "Got data: #{data.inspect}"
+      super
     end
     
     def self.start

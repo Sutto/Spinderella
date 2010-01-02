@@ -16,7 +16,7 @@ module Spinderella
       @awaiting_policy_file_request = true
     end
     
-    def post_init
+    def post_connect
       logger.debug "Connection initiated."
       @user ||= User.new(self)
       logger.debug "Created user with signature hash #{@user.signature.hash.to_s(16)}"

@@ -34,7 +34,7 @@ module Spinderella
     end
     
     def ping
-      connection.perform_action :ping
+      connection.message :ping
       @ping_count += 1
     end
     
@@ -75,7 +75,7 @@ module Spinderella
     end
     
     def disconnect(reason = nil)
-      connection.perform_action :disconnected, :reason => reason
+      connection.message :disconnected, :reason => reason
       connection.close_connection_after_writing
     end
     

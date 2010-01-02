@@ -28,7 +28,7 @@ module Spinderella
 
           on_action :channels do |data|
             return unless user?
-            perform_action "channels", :channels => @user.channels.keys
+            message "channels", :channels => @user.channels.keys
           end
           
         end

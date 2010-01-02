@@ -3,14 +3,18 @@ $LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
 require 'perennial'
 require 'eventmachine'
 require 'yajl'
+require 'yajl/json_gem'
 require 'digest/sha2'
 
-# Salt N Pepper!
-# Push it - Push it real good!
+# Spinderella: A Simple JSON PubSub server written in ruby using eventmachine.
 module Spinderella
   include Perennial
   
-  VERSION = "0.0.1"
+  VERSION = [1, 0, 0, 0]
+  
+  def self.version(inc_patch = (VERSION.last != 0))
+    VERSION[0, inc_patch ? 4 : 3].join(".")
+  end
   
   manifest do |m, l|
     Settings.lookup_key_path = []
