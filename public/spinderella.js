@@ -4,7 +4,7 @@ Array.prototype.remove = function(from, to) {
   return this.push.apply(this, rest);
 };
 
-// Spinderella.js - A Web Client for Spinderella, built on WebSocket, jsSocket, and Orbited
+// Spinderella.js - A Web Client for Spinderella, built on WebSocket, JSSocket, and Orbited
 // Making it super easy for realtime pubsub clients in the browser.
 
 var Spinderella = function(host, port, channels, identifier, onMessage) {
@@ -16,9 +16,12 @@ var Spinderella = function(host, port, channels, identifier, onMessage) {
   this.onMessage = onMessage || function() {};
 }
 
+Spinderella.log = function() {};
+
 Spinderella.Util = {
   
   loadJS: function(url, func) {
+    Spinderella.log("loading javascript from", url);
     var script    = document.createElement("script");
     script.type   = "text/javascript";
     script.src    = url;
@@ -32,13 +35,17 @@ Spinderella.Util = {
 Spinderella.prototype = {
   
   processConnection: function() {
+    Spinderella.log("-> processConnection");
     if(this.channels && this.channels.length > 0) this.subscribe(this.channels);
     if(this.identifier) this.identify(this.identifier);
   },
   
-  processDisconnection: function() {},
+  processDisconnection: function() {
+    Spinderella.log("-> processDisconnection");
+  },
   
   receiveData: function(data) {
+    Spinderella.log("<<", data);
     this.buffer += data;
     if(this.buffer.indexOf("\r\n") >= 0) {
       var split_buffer = this.buffer.split("\r\n");
@@ -50,8 +57,10 @@ Spinderella.prototype = {
   },
   
   receiveMessage: function(raw_message) {
+    Spinderella.log("Got raw message:", raw_message);
     var parsed = JSON.parse(raw_message);
     if(parsed && parsed.action) {
+      Spinderella.log("Handling action:", parsed.action)
       this.handleAction(parsed.action, (parsed.data || {}));
     }
   },
@@ -59,6 +68,7 @@ Spinderella.prototype = {
   handleAction: function(name, data) {
     switch(name) {
     case 'ping':
+      Spinderella.log("Oh noes! ping time");
       this.performAction("pong");
       break;
     case 'receive_message':
@@ -68,12 +78,14 @@ Spinderella.prototype = {
   },
   
   performAction: function(name, data) {
+    Spinderella.log("Performing action with name =", name, "and data =", data);
     if(!data) data = {};
-    var raw = {
-      "action": name,
-      "data":   data
-    };
-    this.socket.send(JSON.stringify(raw) + "\r\n");
+    var raw = JSON.stringify({
+      "action":  name,
+      "payload": data
+    });
+    Spinderella.log(">>", raw);
+    this.socket.send(raw + "\r\n");
   },
   
   subscribe: function(channels) {
@@ -81,6 +93,7 @@ Spinderella.prototype = {
       var c = channels[idx];
       if(this.channels.indexOf(c) < 0) this.channels.push(c);
     }
+    Spinderella.log("Subscribing to channels: ", channels);
     this.performAction("subscribe", {
       "channels": channels
     });
@@ -92,12 +105,14 @@ Spinderella.prototype = {
       var idx2 = this.channels.indexOf(c);
       if(idx2 >= 0) this.channels.remove(idx2);
     }
+    Spinderella.log("Unsubscribing from", channels);
     this.performAction("unsubscribe", {
       "channels": channels
     });
   },
   
   identify: function(identifier) {
+    Spinderella.log("Identifying as", identifier);
     this.performAction("identify", {
       "identifier": identifier
     })
@@ -107,22 +122,22 @@ Spinderella.prototype = {
 
 // A Noop based implementation / does nothing.
 
-Spinderella.Silenced = function() {
+Spinderella.Mock = function() {
   this.client = new Spinderella();
   this.client.socket = this;
 };
 
-Spinderella.Silenced.isUseable = function() {
+Spinderella.Mock.isUseable = function() {
   return true;
 };
 
-Spinderella.Silenced.implementationName = "Silenced";
+Spinderella.Mock.implementationName = "Mock";
 
-Spinderella.Silenced.prototype = {
-  onMessage:    function() {},
-  connect:      function() {},
-  onDisconnect: function() {},
-  send:         function() {}
+Spinderella.Mock.prototype = {
+  onMessage:    function() { Spinderella.log("Adding onMessage callback"); },
+  connect:      function() { Spinderella.log("Mock connected."); },
+  onDisconnect: function() { Spinderella.log("Mock disconnected."); },
+  send:         function(d) { Spinderella.log("Mock is sending data:", d); }
 };
 
 // Orbited Implementation
@@ -143,6 +158,7 @@ Spinderella.Orbited.implementationName = "Orbited";
 
 Spinderella.Orbited.prototype = {
   
+  // Use a function otherwise it causes issues when orbited isn't loaded.
   reconnectOn: function() {
     return [Orbited.Errors.RemoteConnectionFailed, Orbited.Errors.UserConnectionReset, Orbited.Statuses.ServerClosedConnection];
   },
@@ -183,20 +199,21 @@ Spinderella.Orbited.prototype = {
   
 };
 
-// jsSocket Implementation
+// JSSocket Implementation
 
-Spinderella.jsSocket = function(host, port, channels, identifier, onMessage) {
+Spinderella.JSSocket = function(host, port, channels, identifier, onMessage) {
   this.client = new Spinderella(host, port, channels, identifier, onMessage);
   this.client.socket = this;
 };
 
-Spinderella.jsSocket.flashURL           = null;
-Spinderella.jsSocket.javascriptURL      = null;
-Spinderella.jsSocket.implementationName = "jsSocket";
+Spinderella.JSSocket.flashURL           = null;
+Spinderella.JSSocket.javascriptURL      = null;
+Spinderella.JSSocket.implementationName = "JSSocket";
 
-Spinderella.jsSocket.isUseable = function() {
-  if(Spinderella.jsSocket.flashURL == null || Spinderella.jsSocket.javascriptURL == null) return false;
+Spinderella.JSSocket.isUseable = function() {
+  if(Spinderella.JSSocket.flashURL == null || Spinderella.JSSocket.javascriptURL == null) return false;
   // VERY rudimentary check for Flash.
+  Spinderella.log("Checking for Flash");
   var n = navigator;
   if(n.mimeTypes) {
     return n.mimeTypes["application/x-shockwave-flash"] !== undefined;
@@ -207,23 +224,31 @@ Spinderella.jsSocket.isUseable = function() {
   }
 };
 
-Spinderella.jsSocket.prototype = {
+Spinderella.JSSocket.prototype = {
   
   connect: function(f) {
+    Spinderella.log("Connecting via flash");
     var self = this;
     var client = this.client;
     var callback = function() {
-      jsSocket.swf = Spinderella.jsSocket.flashURL;
-      self.socket = new jsSocket({keepalive: false, autoreconnect: true});
+      JSSocket.swf    = Spinderella.JSSocket.flashURL;
+      Spinderella.log("Set JSSocket swf to", JSSocket.swf);
+      JSSocket.logger = function() { Spinderella.log.apply(Spinderella, arguments); };
+      Spinderella.log("Created socket and setting callbacks");
       if(typeof(f) != "function") f = function() {};
-      self.socket.onData   = function(d) { client.receiveData(d);  };
-      self.socket.onOpen   = function()  { client.processConnection(); f(); };
-      self.socket.onClose  = function()  { client.processDisconnection(); };
-      self.socket.onLoaded = function()  { self.socket.connect(client.host, client.port); };
+      
+      self.socket = JSSocket.connect(client.host, client.port, function(jss) {
+        // Add events
+        jss.onData(function(d) { client.receiveData(d); });
+        jss.onOpen(function()  { client.processConnection(); f(); });
+        jss.onClose(function() { client.processDisconnection(); });
+      });
+      
     };
     // Load the JS if not already loaded, otherwise call it immediatly.
-    if(typeof(jsSocket) != "undefined") {
-      Spinderella.Util.loadJS(Spinderella.jsSocket.javascriptURL, callback);
+    if(typeof(JSSocket) == "undefined") {
+      Spinderella.log("Lazy loading JSSocket");
+      Spinderella.Util.loadJS(Spinderella.JSSocket.javascriptURL, callback);
     } else {
       callback();
     }
@@ -243,7 +268,8 @@ Spinderella.WebSocket = function(host, port, channels, identifier, onMessage) {
   this.client = new Spinderella(host, port, channels, identifier, onMessage);
   this.resourceURL = "ws://" + host;
   if(port != 80) this.resourceURL += (":" + port);
-  this.resourceURL += ("/" + "spinderella");
+  this.resourceURL += ("/spinderella");
+  Spinderella.log("WebSocket uses", this.resourceURL);
   this.client.socket = this;
 }
 
@@ -258,9 +284,11 @@ Spinderella.WebSocket.prototype = {
   onMessage: function(f) { this.client.onMessage = f; },
   
   connect: function(f) {
+    Spinderella.log("Creating websocket");
     this.socket = new WebSocket(this.resourceURL);
     var client = this.client;
     var self   = this;
+    Spinderella.log("Setting callbacks");
     if(typeof(f) != "function") f = function() {};
     this.socket.onmessage  = function(e) { 
       // Append "\r\n" since we don't use it with the websocket protocol
@@ -271,6 +299,7 @@ Spinderella.WebSocket.prototype = {
   },
   
   onDisconnect: function() {
+    Spinderella.log("Handling websocket disconnection");
     this.client.processDisconnection();
     // Check for a disconnection by mistake
     if(false) {
@@ -288,13 +317,17 @@ Spinderella.WebSocket.prototype = {
 // Abstract away the process of finding the best implementation for users so they
 // can just automatically use the best fit for this scenario.
 
-Spinderella.Implementations = [Spinderella.WebSocket, Spinderella.jsSocket, Spinderella.Orbited, Spinderella.Silenced];
+Spinderella.Implementations = [Spinderella.WebSocket, Spinderella.JSSocket, Spinderella.Orbited, Spinderella.Mock];
 
 Spinderella.getPreferredImplementation = function() {
   var implementation;
   for(var i = 0; i < Spinderella.Implementations.length; i++) {
     implementation = Spinderella.Implementations[i];
-    if(implementation.isUseable && implementation.isUseable()) return implementation;
+    Spinderella.log("Checking if", implementation.implementationName, "is useable");
+    if(implementation.isUseable && implementation.isUseable()) {
+      Spinderella.log("Using", implementation.implementationName);
+      return implementation;
+    }
   }
   return;
 };
@@ -314,5 +347,6 @@ Spinderella.create = function(host, ports, channels, identifier, onMessage) {
       break;
     }
   }
+  Spinderella.log("Connection to", host, port);
   return new impl(host, port, channels, identifier, onMessage);
 }

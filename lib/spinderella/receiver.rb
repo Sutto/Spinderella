@@ -11,6 +11,7 @@ module Spinderella
     
     on_action :broadcast do |data|
       if authenticated?
+        puts "broadcasting w/ #{data.inspect}"
         broadcast(data["message"], data["type"], data) if data["message"].present?
       else
         message :unauthorized
@@ -49,16 +50,6 @@ module Spinderella
       when "channel"
         publish_to_channel(data["channel"], message)
       end
-    end
-    
-    def recieve_data(d)
-      puts "<< #{d.strip}"
-      super
-    end
-    
-    def send_data(d)
-      puts ">> #{d.strip}"
-      super
     end
     
     def self.start

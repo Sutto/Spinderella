@@ -31,10 +31,10 @@ module Spinderella
     end
     
     def receive_data(data)
-      if !@awaiting_policy_file_request
+      if @awaiting_policy_file_request
         if data.include?(FLASH_POLICY_REQUEST)
           logger.debug "Got flash policy request, sending policy response."
-          send_data FLASH_POLICY_RESPONSE.gsub('SPINDERELLA-PORT', @options.port)
+          send_data FLASH_POLICY_RESPONSE.gsub('SPINDERELLA-PORT', @options.port.to_s)
           close_connection_after_writing
           return
         end
@@ -68,7 +68,7 @@ module Spinderella
         real_opts.merge!(opts)
         host = real_opts.host.to_s
         port = real_opts.port.to_i
-        EventMachine.start_server(host, port, self, opts)
+        EventMachine.start_server(host, port, self, real_opts)
         logger.info "Serving Spinderella clients on #{host}:#{port}"
       end
       

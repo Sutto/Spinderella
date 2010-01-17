@@ -22,6 +22,7 @@ module Spinderella
       end
       
       def on_receive(message)
+        logger.debug "<< #{message}"
         receive_message(message.strip)
       end
       
